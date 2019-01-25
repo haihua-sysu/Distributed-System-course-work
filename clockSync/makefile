@@ -5,7 +5,7 @@ BIN_DIR = ./bin
 
 targets = server_1 server_2 client
 targetsobjs = $(foreach i, $(targets), $(i).o)
-objs = socket.o 
+objs = socket.o time.o
 objsfile = $(targetsobjs) $(objs) 
 
 all: $(targets) 

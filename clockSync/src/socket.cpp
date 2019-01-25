@@ -45,6 +45,7 @@ int Socket::Connect(const char* ip, unsigned short port) {
 
 int Socket::Close() {
     close(socketfd);
+	printf("socket closed fd = %d\n", socketfd);
     return 0;
 }
 
@@ -91,7 +92,7 @@ Socket* ServerSocket::Accept() {
     socklen_t len;
     if ((connfd = accept(listenfd, &client_info, &len)) == -1){
 #ifdef DEBUG
-        puts("accept error");
+        printf("accept error listenfd = %d", listenfd);
 #endif
         return NULL;
     }

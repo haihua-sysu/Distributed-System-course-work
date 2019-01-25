@@ -32,23 +32,25 @@ long getRandomDelivery() {
 }
 
 void processFun(ServerSocket &server, Socket &serClient, Socket* client) {
-    char buffer[1024] = {0};
-    read( client->socketfd , buffer, 1024);
-    printf("Processor: %s\n",buffer );
-    
-    long delayTime1 = getRandomDelivery();
-    
-    string msg = "Proccessor: Time Request";
-    send(serClient.socketfd, msg.c_str(), msg.length(), 0);
-    
-    char buffer1[1024] = {0};
-    read(serClient.socketfd, buffer1, 1024);
-    printf("Processor: receive msg from server: currentTime is %s\n",buffer1 );
-    
-    long delayTime2 = getRandomDelivery();
-    
-    string timeMsg = string(buffer1) + "," + to_string(delayTime1 + delayTime2);
-    send(client->socketfd, timeMsg.c_str(), timeMsg.length(), 0);
+	char buffer[1024] = {0};
+	while (true) {
+		read( client->socketfd , buffer, 1024);
+		printf("Processor: %s\n",buffer );
+
+		long delayTime1 = getRandomDelivery();
+
+		string msg = "Proccessor: Time Request";
+		send(serClient.socketfd, msg.c_str(), msg.length(), 0);
+
+		char buffer1[1024] = {0};
+		read(serClient.socketfd, buffer1, 1024);
+		printf("Processor: receive msg from server: currentTime is %s\n",buffer1 );
+
+		long delayTime2 = getRandomDelivery();
+
+		string timeMsg = string(buffer1) + "," + to_string(delayTime1 + delayTime2);
+		send(client->socketfd, timeMsg.c_str(), timeMsg.length(), 0);
+	}
 }
 
 int main(int argc, const char * argv[]) {
@@ -67,19 +69,23 @@ int main(int argc, const char * argv[]) {
         puts("server start error");
         return 0;
     }
-    puts("Server Start\n");
+    puts("sv1 Server Start\n");
     
     Socket serClient;
     if (serClient.Connect(ip.c_str(), serverPort) < 0) {
-        puts("client connect error");
+        puts("sv1 client connect error");
         return 0;
     }
-    puts("Client Connected\n");
+    puts("sv1 Client Connected\n");
     
     
     while (true) {
         Socket* client = server.Accept();
-        if (client == nullptr) continue;
+        if (client == nullptr) {
+			puts("sv1 accept error");
+			sleep(1);
+			continue;
+		}
         else {
             thread process(processFun, ref(server), ref(serClient), client);
             process.join();

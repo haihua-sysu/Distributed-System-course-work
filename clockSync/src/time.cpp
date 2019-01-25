@@ -36,7 +36,7 @@ long diffTimeInMillisecond(long t1, long t2) {
 
 string formatCurrentTime() {
     time_t rawtime;
-    struct tm * timeinfo;
+    struct tm *timeinfo;
     
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );

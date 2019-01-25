@@ -18,14 +18,17 @@
 using namespace std;
 
 void processFun(ServerSocket server, Socket* client) {
-    char buffer[1024] = {0};
-    read( client->socketfd , buffer, 1024);
-    printf("Server: receive msg from processor: %s\n",buffer );
-    
-    struct timeval tv;
-    gettimeofday(&tv,NULL);
-    string timeMsg = convertTimeToString(tv, 0);
-    send(client->socketfd, timeMsg.c_str(), timeMsg.length(), 0);
+	char buffer[1024] = {0};
+	// TODO: need a disconnect signal from client to quit the process
+	while (true) {
+		read( client->socketfd , buffer, 1024);
+		printf("Server: receive msg from processor: %s\n",buffer );
+
+		timeval tv;
+		gettimeofday(&tv,NULL);
+		string timeMsg = convertTimeToString(tv, 0);
+		send(client->socketfd, timeMsg.c_str(), timeMsg.length(), 0);
+	}
 }
 
 int main(int argc, const char * argv[]) {
@@ -40,14 +43,17 @@ int main(int argc, const char * argv[]) {
     
     ServerSocket server;
     if (server.Listen(ip.c_str(), port) < 0) {
-        puts("server start error");
+        puts("sv2 server start error");
         return 0;
     }
-    puts("Server Start\n");
+    puts("sv2 Server Start\n");
     
     while (true) {
         Socket* client = server.Accept();
-        if (client == nullptr) continue;
+        if (client == nullptr) {
+			sleep(1);
+			continue;
+		}
         else {
             thread process(processFun, server, client);
             process.join();
