@@ -6,15 +6,16 @@
 //  Copyright © 2019 haihua. All rights reserved.
 //
 
-#include "client.hpp"
+#include "client.h"
+#include "lib/socket.h"
+#include "lib/time.h"
+
 #include <iostream>
-#include "socket.hpp"
 #include <sstream>
 #include <string>
 #include <thread>
 #include <time.h>       /* time_t, struct tm, time, localtime */
 #include <sys/time.h>
-#include "time.hpp"
 
 using namespace std;
 

@@ -6,8 +6,7 @@
 //  Copyright © 2019 haihua. All rights reserved.
 //
 
-#include "socket.hpp"
-#define DEBUG 0
+#include "socket.h"
 
 Socket::Socket() : socketfd(-1) {}
 

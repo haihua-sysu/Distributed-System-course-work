@@ -6,14 +6,14 @@
 //  Copyright © 2019 haihua. All rights reserved.
 //
 
-#include "server_2.hpp"
+#include "lib/time.h"
+#include "lib/socket.h"
+
 #include <iostream>
-#include "socket.hpp"
 #include <sstream>
 #include <string>
 #include <thread>
 #include <signal.h>
-#include "time.hpp"
 
 using namespace std;
 

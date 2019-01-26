@@ -6,10 +6,9 @@
 //  Copyright © 2019 haihua. All rights reserved.
 //
 
-#ifndef socket_hpp
-#define socket_hpp
+#ifndef SOCKET_H
+#define SOCKET_H
 
-#include <string>
 #include <stdio.h>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -17,6 +16,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdio.h>
+#include <string.h>
 
 class Socket {
 public:

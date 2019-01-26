@@ -6,12 +6,11 @@
 //  Copyright © 2019 haihua. All rights reserved.
 //
 
-#include "time.hpp"
+#include "time.h"
 #include <time.h>       /* time_t, struct tm, time, localtime */
 #include <sys/time.h>
 #include <string>
 #include <vector>
-
 using namespace std;
 
 long getCurrentTime() {
