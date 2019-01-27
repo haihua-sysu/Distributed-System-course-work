@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+message NetworkRequest {
+    enum RequestType {
+        CLOCK_SYNC = 1;
+    }
+
+    required int32 client_id = 1;
+    required RequestType type = 2;
+    optional string client_ip = 3;
+};

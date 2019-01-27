@@ -18,3 +18,9 @@ cc_binary(
     deps = ["//lib:network-lib"],
     linkopts = ["-pthread"],
 )
+
+cc_binary(
+    name = "test-proto",
+    srcs = ["src/test_proto.cc"],
+    deps = ["//lib:network_cc_proto"],
+)
