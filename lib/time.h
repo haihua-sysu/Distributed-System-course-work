@@ -9,11 +9,15 @@
 #ifndef TIME_H
 #define TIME_H
 
+#include "runnable.h"
+
 #include <stdio.h>
 #include <time.h>       /* time_t, struct tm, time, localtime */
 #include <sys/time.h>
 #include <cstring>
 #include <string>
+#include <thread>
+#include <chrono>
 
 long getCurrentTime();
 
@@ -28,5 +32,7 @@ std::string formatCurrentTime();
 void convertStringToTime(char buffer[], struct timeval &utcTime, long &delivery);
 
 std::string convertTimeToString(struct timeval utcTime, long delivery);
+
+void registerCallback(Runnable *task, int delay_ms);
 
 #endif /* time_hpp */

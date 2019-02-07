@@ -70,3 +70,10 @@ string convertTimeToString(struct timeval utcTime, long delivery) {
     if (delivery != 0) res += "," + to_string(delivery);
     return res;
 }
+
+void registerCallback(Runnable *task, int delay_ms) {
+    std::thread([task, delay_ms](){
+	std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+	task->run();
+    }).detach();
+}
