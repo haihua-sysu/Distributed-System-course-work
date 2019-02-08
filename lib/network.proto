@@ -2,10 +2,20 @@ syntax = "proto2";
 
 message NetworkRequest {
     enum RequestType {
-        CLOCK_SYNC = 1;
+        TRANSFER = 1;
+        MARKER = 2;
+        IDENTITY = 3;
+        SNAPSHOT = 4;
     }
 
-    required int32 client_id = 1;
-    required RequestType type = 2;
-    optional string client_ip = 3;
+    required int32 client_from = 1;
+    required int32 client_to = 2;
+    required RequestType type = 3;
+    optional int32 money = 4;
+    optional int32 channel1_from = 5;
+    optional int32 channel1_to = 6;
+    optional int32 channel1_money = 7;
+    optional int32 channel2_from = 8;
+    optional int32 channel2_to = 9;
+    optional int32 channel2_money = 10;
 };
