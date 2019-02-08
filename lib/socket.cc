@@ -53,6 +53,12 @@ string Socket::recvMessage() {
     if (msg.empty()) {
         char buffer[1024];
         int bytes = recv(socketfd, buffer, 1024, 0);
+
+        if (bytes == 0) {
+            printf("client: receive message size = 0, socketfd closed");
+            _exit(-1);
+        }
+
         int cur = 0;
         char* pBuf = buffer;
         while (cur < bytes) {
