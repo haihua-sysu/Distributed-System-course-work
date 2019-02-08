@@ -17,6 +17,9 @@
 #include <sys/socket.h>
 #include <stdio.h>
 #include <string.h>
+#include <queue>
+#include <string>
+using namespace std;
 
 class Socket {
 public:
@@ -44,9 +47,16 @@ public:
      * close the connection
      */
     int Close();
+
+    /** Read one message, blocking call. */
+    string recvMessage();
+
+    /** Send message. */
+    void sendMessage(const string &str);
     
 //private:
     int socketfd;
+    queue<string> msg;
 };
 
 class ServerSocket {
