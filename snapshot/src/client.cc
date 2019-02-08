@@ -24,7 +24,7 @@
 
 using namespace std;
 
-#define debug 1
+#define debug 0
 
 int balance = 1000;
 int client_id;
@@ -41,14 +41,21 @@ class Task : public Runnable {
     Task(int i): idx(i) {}
     
     void run() override {
-#if debug
-        printf("Callback\n");
-#endif
+
         NetworkRequest cur = clientMsg[idx].front();
+#if debug
+        printf("Callback: type %d\n", cur.type());
+#endif
         if (cur.type() == NetworkRequest::TRANSFER) {
+#if debug
+            printf("transfer\n");
+#endif
             balance += cur.money();
             clientMsg[idx].pop();
-            printf("Client%d received %d dollars from Client%d. The current balance for Client%d is %d", client_id, cur.money(), cur.client_from(), client_id, balance);
+            printf("Client%d received %d dollars from Client%d. The current balance for Client%d is %d\n", client_id, cur.money(), cur.client_from(), client_id, balance);
+#if debug
+            printf("transfer end money is %d\n", balance);
+#endif
         }
     }
     private:
@@ -95,11 +102,11 @@ NetworkRequest setNetworkRequest() {
             tmp.pop();
         }
         if (it == clientMsg.begin()) {
-            request.set_channel1_from(it->first);
+            request.set_channel1_from(it->first + 1);
             request.set_channel1_to(client_id);
             request.set_channel1_money(sum);
         } else {
-            request.set_channel2_from(it->first);
+            request.set_channel2_from(it->first + 1);
             request.set_channel2_to(client_id);
             request.set_channel2_money(sum);
         }
@@ -108,9 +115,11 @@ NetworkRequest setNetworkRequest() {
 }
 
 void formatPrint() {
+    printf("formatprint\n");
     for (int i = 0; i < rcvFlag.size(); i++) {
         if (i != client_id - 1 && !rcvFlag[i]) return;
     }
+    printf("formatprintXXXXXX\n");
     NetworkRequest request = setNetworkRequest();
     snapshotRecord[client_id - 1] = request;
     printf("A snapshot has been terminated. The bank status is as following:\n");
@@ -125,7 +134,7 @@ void formatPrint() {
         }
         rcvFlag[i] = false;
     }
-    rcvFlag[client_id] = true;
+    rcvFlag[client_id - 1] = true;
 }
 
 
@@ -176,7 +185,7 @@ void readMsgFromQueue(Socket& client) {
                     
                     (it->second).pop();
                 } else if (cur.type() == NetworkRequest::SNAPSHOT) {
-#if debug
+#if 1//debug
                     printf("Snapshot from %d\n", cur.client_from());
 #endif
                     snapshotRecord[cur.client_from() - 1] = cur;
@@ -184,13 +193,16 @@ void readMsgFromQueue(Socket& client) {
                     rcvFlag[cur.client_from() - 1] = true;
                     formatPrint();
                 } else {
+                    if (cur.flag() == 0) continue;
                     Runnable* task = new Task(it->first);
                     // task->run() will be call from another thread after 2500 ms.
                     // registerCallback is an unblocked method.
 #if debug
                     printf("call callback\n");
 #endif
-                    registerCallback(task, 5000);
+                    registerCallback(task, 10000);
+                    (it->second).front().set_flag(0);
+                    
                 }
             }
         }
@@ -269,6 +281,7 @@ int main(int argc, const char * argv[]) {
                 //Dest
                 request.set_client_to(stoi(vec[2]));
                 request.set_money(stoi(vec[3]));
+                request.set_flag(1);
                 balance -= stoi(vec[3]);
                 printf("Client%d sent %d dollars to Client%d. The current balance for Client%d is %d.\n", client_id, request.money(), request.client_to(), client_id, balance);
             } else {

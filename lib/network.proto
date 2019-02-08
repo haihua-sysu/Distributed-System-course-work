@@ -18,4 +18,5 @@ message NetworkRequest {
     optional int32 channel2_from = 8;
     optional int32 channel2_to = 9;
     optional int32 channel2_money = 10;
+    optional int32 flag = 11;
 };
