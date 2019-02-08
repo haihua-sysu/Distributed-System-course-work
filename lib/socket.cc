@@ -14,9 +14,7 @@ Socket::Socket(int socketfd) {
     this->socketfd = socketfd;
 }
 
-Socket::~Socket() {
-    Close();
-}
+Socket::~Socket() {}
 
 int Socket::Connect(const char* ip, unsigned short port) {
     struct sockaddr_in server_addr;
@@ -44,18 +42,15 @@ int Socket::Connect(const char* ip, unsigned short port) {
 
 int Socket::Close() {
     close(socketfd);
-	printf("socket closed fd = %d\n", socketfd);
+    printf("socket closed fd = %d\n", socketfd);
     return 0;
 }
 
 ////////////////////////////////////////////////ServerSocket
 
-ServerSocket::ServerSocket() : listenfd(-1) {
-}
+ServerSocket::ServerSocket() : listenfd(-1) {}
 
-ServerSocket::~ServerSocket() {
-    close(listenfd);
-}
+ServerSocket::~ServerSocket() {}
 
 int ServerSocket::Listen(const char* ip, unsigned short port) {
     if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) == -1){

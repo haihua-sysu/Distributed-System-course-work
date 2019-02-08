@@ -49,30 +49,24 @@ public:
     int socketfd;
 };
 
-/**
- * 服务端 socket
- */
 class ServerSocket {
 public:
-    /**
-     * 构造函数
-     */
     ServerSocket();
     
-    /**
-     * 析构函数
-     */
     ~ServerSocket();
     
     /**
-     * 监听端口
+     * Start to listen.
      */
     int Listen(const char* ip, unsigned short port);
     
     /**
-     * accept 新连接
+     * Accept a connect request and return a socket pointer that associated with the request.
      */
     Socket* Accept();
+
+    /** Close the socket. This should be called explicitly when the socket is no longer need. */
+    void Close();
     
 //private:
     int listenfd;
