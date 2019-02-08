@@ -8,15 +8,22 @@
 
 #include "socket.h"
 
+int read_len(char* buffer, int &cur) {
+    int ret = 0;
+    for (int i = 0; i < 4; i++) {
+        ret = ret << 8;
+        ret |= buffer[cur++];
+    }
+    return ret;
+}
+
 Socket::Socket() : socketfd(-1) {}
 
 Socket::Socket(int socketfd) {
     this->socketfd = socketfd;
 }
 
-Socket::~Socket() {
-    Close();
-}
+Socket::~Socket() {}
 
 int Socket::Connect(const char* ip, unsigned short port) {
     struct sockaddr_in server_addr;
@@ -42,20 +49,52 @@ int Socket::Connect(const char* ip, unsigned short port) {
     return 0;
 }
 
+string Socket::recvMessage() {
+    if (msg.empty()) {
+        char buffer[1024];
+        int bytes = recv(socketfd, buffer, 1024, 0);
+        int cur = 0;
+        char* pBuf = buffer;
+        while (cur < bytes) {
+            int msg_len = read_len(pBuf, cur);
+            string str(pBuf + cur, msg_len);
+            pBuf += cur + msg_len;
+            cur += msg_len;
+        }
+    }
+
+    if (!msg.empty()) {
+        string ret = msg.front();
+        msg.pop();
+        return ret;
+    }
+
+    // return empty string if any error occurred.
+    return "";
+}
+
+void Socket::sendMessage(const string &str) {
+    int len = str.length();
+    char buffer[1024];
+    for (int i = 3; i >= 0; i--) {
+        buffer[i] = len & 255;
+        len >>= 8;
+    }
+    strncpy(buffer + 4, str.c_str(), str.length());
+    send(socketfd, buffer, 4 + str.length(), 0);
+}
+
 int Socket::Close() {
     close(socketfd);
-	printf("socket closed fd = %d\n", socketfd);
+    printf("socket closed fd = %d\n", socketfd);
     return 0;
 }
 
 ////////////////////////////////////////////////ServerSocket
 
-ServerSocket::ServerSocket() : listenfd(-1) {
-}
+ServerSocket::ServerSocket() : listenfd(-1) {}
 
-ServerSocket::~ServerSocket() {
-    close(listenfd);
-}
+ServerSocket::~ServerSocket() {}
 
 int ServerSocket::Listen(const char* ip, unsigned short port) {
     if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) == -1){
