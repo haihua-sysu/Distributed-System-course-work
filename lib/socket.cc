@@ -8,11 +8,11 @@
 
 #include "socket.h"
 
-int read_len(char* buffer, int &cur) {
+int read_len(char* buffer) {
     int ret = 0;
     for (int i = 0; i < 4; i++) {
         ret = ret << 8;
-        ret |= buffer[cur++];
+        ret |= buffer[i];
     }
     return ret;
 }
@@ -62,10 +62,10 @@ string Socket::recvMessage() {
         int cur = 0;
         char* pBuf = buffer;
         while (cur < bytes) {
-            int msg_len = read_len(pBuf, cur);
-            string str(pBuf + cur, msg_len);
-            pBuf += cur + msg_len;
-            cur += msg_len;
+            int msg_len = read_len(pBuf);
+            string str(pBuf + 4, msg_len);
+            pBuf += 4 + msg_len;
+            cur += 4 + msg_len;
         }
     }
 
