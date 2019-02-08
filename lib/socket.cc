@@ -8,7 +8,7 @@
 
 #include "socket.h"
 #include <iostream>
-using namespace std;
+#include <functional>
 
 int read_len(char* buffer) {
     int ret = 0;
@@ -52,6 +52,7 @@ int Socket::Connect(const char* ip, unsigned short port) {
 }
 
 string Socket::recvMessage() {
+    std::hash<string> str_hash;
     if (msg.empty()) {
         char buffer[1024];
         int bytes = recv(socketfd, buffer, 1024, 0);
@@ -65,7 +66,9 @@ string Socket::recvMessage() {
         char* pBuf = buffer;
         while (cur < bytes) {
             int msg_len = read_len(pBuf);
-            msg.push(string(pBuf + 4, msg_len));
+            string str = string(pBuf + 4, msg_len);
+            msg.push(str);
+            cout << "recv message " << str_hash(str) << endl;
             pBuf += 4 + msg_len;
             cur += 4 + msg_len;
         }
@@ -82,6 +85,7 @@ string Socket::recvMessage() {
 }
 
 void Socket::sendMessage(const string &str) {
+    std::hash<string> str_hash;
     int len = str.length();
     char buffer[1024];
     for (int i = 3; i >= 0; i--) {
@@ -90,6 +94,7 @@ void Socket::sendMessage(const string &str) {
     }
     strncpy(buffer + 4, str.c_str(), str.length());
 	send(socketfd, buffer, 4 + str.length(), 0);
+    cout << "send message " << str_hash(str) << endl;
 }
 
 int Socket::Close() {

@@ -200,12 +200,9 @@ void readMsgFromQueue(Socket& client) {
                     request.SerializeToString(coding);
                     
                     client.sendMessage(*coding);
-                    
 #if debug
                     printf("type is %d, from is %d, to is %d, byte is %d.\n", request.type(), request.client_from(), request.client_to(), (*coding).length());
 #endif
-					cout << "client" << it->first << " send " << str_hash(*coding) << endl;
-                    
                     (it->second).pop();
                 } else if (cur.type() == NetworkRequest::SNAPSHOT) {
 #if 1//debug
