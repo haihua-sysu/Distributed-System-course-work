@@ -14,8 +14,12 @@
 #include <string>
 #include <thread>
 #include <signal.h>
+#include <stdio.h>
+
 
 #include "lib/network.pb.h"
+
+#define debug 1
 
 using namespace std;
 vector<int> vec(3, 0);
@@ -38,22 +42,37 @@ void processFun(ServerSocket& server, Socket* client) {
 	while (true) {
         memset(buffer, 0 , sizeof(buffer));
         
-        while (strlen(buffer) == 0) {
-            sleep(1);
-            recv( client->socketfd , buffer, 1024, 0);
+        /*
+        int readByte = read( client->socketfd , buffer, 1024);
+        if (readByte == 0) {
+            printf("Client closed\n");
+            client->Close();
+        }*/
+        
+        int readByte = 0;
+        while (readByte == 0) {
+            readByte = read( client->socketfd , buffer, 1024);
         }
-        str = string(buffer);
+
+        str = string(buffer, readByte);
 		tmp = parseString(str);
         
-        printf("Type %d sent by %d to %d\n", tmp.type(), tmp.client_from(), tmp.client_to());
-        
+        printf("Type %d sent by %d to %d, byte is %d\n", tmp.type(), tmp.client_from(), tmp.client_to(), readByte);
+        int writeByte = 0;
         if (tmp.type() == NetworkRequest::TRANSFER || tmp.type() == NetworkRequest::SNAPSHOT) {
-            cout << write(vec[tmp.client_to() - 1], buffer, strlen(buffer)) << endl;
+            writeByte = write(vec[tmp.client_to() - 1], buffer, readByte);
+            //fflush(vec[tmp.client_to() - 1]);
+            printf("Send to %d %d byte\n", tmp.client_to(), writeByte);
         } else {
             for (int i = 0; i < vec.size(); i++) {
-                if (i + 1 != tmp.client_from()) write(vec[i], buffer, strlen(buffer));
+                if (i + 1 != tmp.client_from()) {
+                    writeByte = write(vec[i], buffer, readByte);
+                    //fflush(vec[i]);
+                    printf("Send to %d %d byte\n", i + 1, writeByte);
+                }
             }
         }
+        //usleep(300000);
 	}
 }
 
