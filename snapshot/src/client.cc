@@ -24,7 +24,7 @@
 
 using namespace std;
 
-#define debug 0
+#define debug 1
 
 int balance = 1000;
 int client_id;
@@ -117,9 +117,11 @@ NetworkRequest setNetworkRequest() {
 void formatPrint() {
     printf("formatprint\n");
     for (int i = 0; i < rcvFlag.size(); i++) {
-        if (i != client_id - 1 && !rcvFlag[i]) return;
+        if (i != client_id - 1 && !rcvFlag[i]) {
+            printf("%d cause the error\n", i + 1);
+            return;
+        }
     }
-    printf("formatprintXXXXXX\n");
     NetworkRequest request = setNetworkRequest();
     snapshotRecord[client_id - 1] = request;
     printf("A snapshot has been terminated. The bank status is as following:\n");
@@ -143,18 +145,25 @@ void receivePro(Socket& client) {
     while (true) {
         memset(buffer, 0, sizeof(buffer));
         
-        while (strlen(buffer) == 0) {
-            sleep(1);
-            read( client.socketfd , buffer, 1024);
+        /*
+        int readByte = read( client.socketfd , buffer, 1024);
+        if (readByte == 0) {
+            printf("Client %d connect closed\n", client_id);
+            client.Close();
+        }*/
+        int readByte = 0;
+        while (readByte == 0) {
+            readByte = read( client.socketfd , buffer, 1024);
         }
-        string str = string(buffer);
+        
+        string str = string(buffer, readByte);
         NetworkRequest tmp = parseString(str);
         clientMsg[tmp.client_from() - 1].push(tmp);
         
 #if debug
-        printf("Receive msg from %d, type is %d.\n", tmp.client_from(), tmp.type());
+        printf("Receive msg from %d, type is %d, byte is %d.\n", tmp.client_from(), tmp.type(), readByte);
 #endif
-#if debug
+#if 0//debug
         printf("clientmsg %d size is %d.\n", tmp.client_from() - 1, clientMsg[tmp.client_from() - 1].size());
 #endif
     }
@@ -174,14 +183,19 @@ void readMsgFromQueue(Socket& client) {
                     NetworkRequest request = setNetworkRequest();
                     
                     request.set_client_to(cur.client_from());
-#if debug
-                    printf("request, type is %d, from is %d, to is %d.\n", request.type(), request.client_from(), request.client_to());
+#if 0//debug
+                    printf("type is %d, from is %d, to is %d.\n", request.type(), request.client_from(), request.client_to());
 #endif
                     // serialize to string
                     string *coding = new string();
                     request.SerializeToString(coding);
                     
-                    cout << write(client.socketfd, (*coding).c_str(), (*coding).length()) << endl;
+                    int writeByte = 0;
+                    writeByte = write(client.socketfd, (*coding).c_str(), (*coding).length());
+                    
+#if debug
+                    printf("type is %d, from is %d, to is %d, byte is %d.\n", request.type(), request.client_from(), request.client_to(), writeByte);
+#endif
                     
                     (it->second).pop();
                 } else if (cur.type() == NetworkRequest::SNAPSHOT) {
@@ -200,7 +214,7 @@ void readMsgFromQueue(Socket& client) {
 #if debug
                     printf("call callback\n");
 #endif
-                    registerCallback(task, 10000);
+                    registerCallback(task, 15000);
                     (it->second).front().set_flag(0);
                     
                 }
