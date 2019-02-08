@@ -157,10 +157,12 @@ void receivePro(Socket& client) {
         */
         
         string str = client.recvMessage();
+#if debug
         if (str.empty()) {
             printf("Can't receive message\n");
             _exit(-1);
         }
+#endif
 
         NetworkRequest tmp = parseString(str);
         clientMsg[tmp.client_from() - 1].push(tmp);
@@ -311,7 +313,8 @@ int main(int argc, const char * argv[]) {
             string *coding = new string();
             request.SerializeToString(coding);
             
-            write(client.socketfd, (*coding).c_str(), (*coding).length());
+            client.sendMessage(*coding);
+            //write(client.socketfd, (*coding).c_str(), (*coding).length());
         }
     }
     

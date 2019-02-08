@@ -32,14 +32,16 @@ NetworkRequest parseString(string& s) {
 
 void processFun(ServerSocket& server, Socket* client) {
     //Read Identity
-	char buffer[1024] = {0};
-    read( client->socketfd , buffer, 1024);
-    string str = string(buffer);
+    char buffer[1024] = {0};
+    int sz = read( client->socketfd , buffer, 1024);
+    printf("server read %d bytes\n", sz);
+    string str = string(buffer + 4, sz - 4);
+
     NetworkRequest tmp = parseString(str);
     if (tmp.type() == NetworkRequest::IDENTITY) vec[tmp.client_from() - 1] = client->socketfd;
     printf("Type %d sent by %d to %d\n", tmp.type(), tmp.client_from(), tmp.client_to());
     
-	while (true) {
+    while (true) {
         memset(buffer, 0 , sizeof(buffer));
         
         /*
@@ -54,10 +56,11 @@ void processFun(ServerSocket& server, Socket* client) {
             readByte = read( client->socketfd , buffer, 1024);
         }
 
-        str = string(buffer, readByte);
-		tmp = parseString(str);
-        
         printf("Type %d sent by %d to %d, byte is %d\n", tmp.type(), tmp.client_from(), tmp.client_to(), readByte);
+
+        str = string(buffer + 4, readByte - 4);
+        tmp = parseString(str);
+        
         int writeByte = 0;
         if (tmp.type() == NetworkRequest::TRANSFER || tmp.type() == NetworkRequest::SNAPSHOT) {
             writeByte = write(vec[tmp.client_to() - 1], buffer, readByte);
@@ -73,7 +76,7 @@ void processFun(ServerSocket& server, Socket* client) {
             }
         }
         //usleep(300000);
-	}
+    }
 }
 
 int main(int argc, const char * argv[]) {
@@ -96,9 +99,9 @@ int main(int argc, const char * argv[]) {
     while (true) {
         Socket* client = server.Accept();
         if (client == nullptr) {
-			sleep(1);
-			continue;
-		}
+            sleep(1);
+            continue;
+        }
         else {
             
             thread process(processFun, ref(server), client);

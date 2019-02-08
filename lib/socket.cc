@@ -7,6 +7,8 @@
 //
 
 #include "socket.h"
+#include <iostream>
+using namespace std;
 
 int read_len(char* buffer) {
     int ret = 0;
@@ -63,7 +65,7 @@ string Socket::recvMessage() {
         char* pBuf = buffer;
         while (cur < bytes) {
             int msg_len = read_len(pBuf);
-            string str(pBuf + 4, msg_len);
+            msg.push(string(pBuf + 4, msg_len));
             pBuf += 4 + msg_len;
             cur += 4 + msg_len;
         }
@@ -87,7 +89,6 @@ void Socket::sendMessage(const string &str) {
         len >>= 8;
     }
     strncpy(buffer + 4, str.c_str(), str.length());
-    send(socketfd, buffer, 4 + str.length(), 0);
 }
 
 int Socket::Close() {
