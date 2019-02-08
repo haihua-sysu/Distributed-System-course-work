@@ -15,6 +15,7 @@
 #include <thread>
 #include <signal.h>
 #include <stdio.h>
+#include <functional>
 
 
 #include "lib/network.pb.h"
@@ -40,6 +41,7 @@ void processFun(ServerSocket& server, Socket* client) {
     NetworkRequest tmp = parseString(str);
     if (tmp.type() == NetworkRequest::IDENTITY) vec[tmp.client_from() - 1] = client->socketfd;
     printf("Type %d sent by %d to %d\n", tmp.type(), tmp.client_from(), tmp.client_to());
+	std::hash<std::string> str_hash;
     
     while (true) {
         memset(buffer, 0 , sizeof(buffer));
@@ -56,10 +58,11 @@ void processFun(ServerSocket& server, Socket* client) {
             readByte = read( client->socketfd , buffer, 1024);
         }
 
-        printf("Type %d sent by %d to %d, byte is %d\n", tmp.type(), tmp.client_from(), tmp.client_to(), readByte);
-
         str = string(buffer + 4, readByte - 4);
         tmp = parseString(str);
+		cout << "server recv " << str_hash(str) << endl;
+
+        printf("Type %d sent by %d to %d, byte is %d\n", tmp.type(), tmp.client_from(), tmp.client_to(), readByte);
         
         int writeByte = 0;
         if (tmp.type() == NetworkRequest::TRANSFER || tmp.type() == NetworkRequest::SNAPSHOT) {

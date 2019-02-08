@@ -18,6 +18,7 @@
 #include <time.h>       /* time_t, struct tm, time, localtime */
 #include <sys/time.h>
 #include "lib/runnable.h"
+#include <functional>
 #include <queue>
 #include <map>
 #include <vector>
@@ -178,6 +179,7 @@ void receivePro(Socket& client) {
 
 
 void readMsgFromQueue(Socket& client) {
+	std::hash<std::string> str_hash;
     while (true) {
         for (auto it = clientMsg.begin(); it != clientMsg.end(); it++) {
             if (!(it->second).empty()) {
@@ -202,6 +204,7 @@ void readMsgFromQueue(Socket& client) {
 #if debug
                     printf("type is %d, from is %d, to is %d, byte is %d.\n", request.type(), request.client_from(), request.client_to(), (*coding).length());
 #endif
+					cout << "client" << it->first << " send " << str_hash(*coding) << endl;
                     
                     (it->second).pop();
                 } else if (cur.type() == NetworkRequest::SNAPSHOT) {

@@ -89,6 +89,7 @@ void Socket::sendMessage(const string &str) {
         len >>= 8;
     }
     strncpy(buffer + 4, str.c_str(), str.length());
+	send(socketfd, buffer, 4 + str.length(), 0);
 }
 
 int Socket::Close() {
