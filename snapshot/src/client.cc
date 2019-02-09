@@ -196,12 +196,12 @@ void readMsgFromQueue(Socket& client) {
                     printf("type is %d, from is %d, to is %d.\n", request.type(), request.client_from(), request.client_to());
 #endif
                     // serialize to string
-                    string *coding = new string();
-                    request.SerializeToString(coding);
+                    string data;
+                    request.SerializeToString(&data);
                     
-                    client.sendMessage(*coding);
+                    client.sendMessage(data);
 #if debug
-                    printf("type is %d, from is %d, to is %d, byte is %d.\n", request.type(), request.client_from(), request.client_to(), (*coding).length());
+                    printf("type is %d, from is %d, to is %d, byte is %d.\n", request.type(), request.client_from(), request.client_to(), (data).length());
 #endif
                     (it->second).pop();
                 } else if (cur.type() == NetworkRequest::SNAPSHOT) {
@@ -256,11 +256,11 @@ int main(int argc, const char * argv[]) {
     request.set_type(NetworkRequest::IDENTITY);
     
     // serialize to string
-    string *coding = new string();
-    request.SerializeToString(coding);
+    string data;
+    request.SerializeToString(&data);
     
     //write(client.socketfd, (*coding).c_str(), (*coding).length());
-    client.sendMessage(*coding);
+    client.sendMessage(data);
     
     //Read Msg and msg queue
     thread t1(receivePro, ref(client));
@@ -310,10 +310,10 @@ int main(int argc, const char * argv[]) {
             }
             
             // serialize to string
-            string *coding = new string();
-            request.SerializeToString(coding);
+            string data;
+            request.SerializeToString(&data);
             
-            client.sendMessage(*coding);
+            client.sendMessage(data);
             //write(client.socketfd, (*coding).c_str(), (*coding).length());
         }
     }

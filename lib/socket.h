@@ -59,7 +59,7 @@ public:
     queue<string> msg;
 };
 
-class ServerSocket {
+class ServerSocket : public Socket {
 public:
     ServerSocket();
     

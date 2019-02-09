@@ -33,48 +33,38 @@ NetworkRequest parseString(string& s) {
 
 void processFun(ServerSocket& server, Socket* client) {
     //Read Identity
-    char buffer[1024] = {0};
-    int sz = read( client->socketfd , buffer, 1024);
-    printf("server read %d bytes\n", sz);
-    string str = string(buffer + 4, sz - 4);
+    string str = client->recvMessage();
+    printf("server read %d bytes\n", str.length());
 
     NetworkRequest tmp = parseString(str);
     if (tmp.type() == NetworkRequest::IDENTITY) vec[tmp.client_from() - 1] = client->socketfd;
     printf("Type %d sent by %d to %d\n", tmp.type(), tmp.client_from(), tmp.client_to());
 	std::hash<std::string> str_hash;
+
+    cout << "server recv " << str_hash(str) << endl;
     
     while (true) {
-        memset(buffer, 0 , sizeof(buffer));
-        
-        /*
-        int readByte = read( client->socketfd , buffer, 1024);
-        if (readByte == 0) {
-            printf("Client closed\n");
-            client->Close();
-        }*/
-        
-        int readByte = 0;
-        while (readByte == 0) {
-            readByte = read( client->socketfd , buffer, 1024);
+        str = client->recvMessage();
+        if (str.empty()) {
+            cout << "client closed" << endl;
+            break;
         }
 
-        str = string(buffer + 4, readByte - 4);
         tmp = parseString(str);
 		cout << "server recv " << str_hash(str) << endl;
 
-        printf("Type %d sent by %d to %d, byte is %d\n", tmp.type(), tmp.client_from(), tmp.client_to(), readByte);
+        printf("Type %d sent by %d to %d, byte is %d\n", tmp.type(), tmp.client_from(), tmp.client_to(), str.length());
         
-        int writeByte = 0;
         if (tmp.type() == NetworkRequest::TRANSFER || tmp.type() == NetworkRequest::SNAPSHOT) {
-            writeByte = write(vec[tmp.client_to() - 1], buffer, readByte);
-            //fflush(vec[tmp.client_to() - 1]);
-            printf("Send to %d %d byte\n", tmp.client_to(), writeByte);
+            Socket socket(vec[tmp.client_to() - 1]);
+            socket.sendMessage(str);
+            printf("Send to %d %d byte\n", tmp.client_to(), str.length());
         } else {
             for (int i = 0; i < vec.size(); i++) {
                 if (i + 1 != tmp.client_from()) {
-                    writeByte = write(vec[i], buffer, readByte);
-                    //fflush(vec[i]);
-                    printf("Send to %d %d byte\n", i + 1, writeByte);
+                    Socket socket(vec[i]);
+                    socket.sendMessage(str);
+                    printf("Send to %d %d byte\n", i + 1, str.length());
                 }
             }
         }
