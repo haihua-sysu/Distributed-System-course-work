@@ -9,8 +9,12 @@
 #include "socket.h"
 #include <iostream>
 #include <functional>
+#include <google/protobuf/util/json_util.h>
+#include <assert.h>
 
-int read_len(char* buffer) {
+#define DEBUG
+
+int readLen(char* buffer) {
     int ret = 0;
     for (int i = 0; i < 4; i++) {
         ret = ret << 8;
@@ -56,19 +60,21 @@ string Socket::recvMessage() {
     if (msg.empty()) {
         char buffer[1024];
         int bytes = recv(socketfd, buffer, 1024, 0);
+        cout << "receive " << bytes << " bytes" << endl;
 
         if (bytes == 0) {
-            printf("client: receive message size = 0, socketfd closed");
+            printf("client: receive message size = 0, socketfd closed\n");
+            fflush(stdout);
             _exit(-1);
         }
 
         int cur = 0;
         char* pBuf = buffer;
         while (cur < bytes) {
-            int msg_len = read_len(pBuf);
+            int msg_len = readLen(pBuf);
             string str = string(pBuf + 4, msg_len);
+            cout << "[socket] recv message " << str_hash(str) << endl;
             msg.push(str);
-            cout << "recv message " << str_hash(str) << endl;
             pBuf += 4 + msg_len;
             cur += 4 + msg_len;
         }
@@ -92,9 +98,9 @@ void Socket::sendMessage(const string &str) {
         buffer[i] = len & 255;
         len >>= 8;
     }
-    strncpy(buffer + 4, str.c_str(), str.length());
-	send(socketfd, buffer, 4 + str.length(), 0);
-    cout << "send message " << str_hash(str) << endl;
+    memcpy(buffer + 4, str.data(), str.length());
+	int sz = send(socketfd, buffer, 4 + str.length(), 0);
+    cout << "send message " << str_hash(string(buffer + 4, str.length())) << " size = " << sz << " origin size = " << 4 + str.length() << endl;
 }
 
 int Socket::Close() {
@@ -143,9 +149,12 @@ Socket* ServerSocket::Accept() {
     socklen_t len;
     if ((connfd = accept(listenfd, &client_info, &len)) == -1){
 #ifdef DEBUG
-        printf("accept error listenfd = %d", listenfd);
+        printf("accept error listenfd = %d\n", listenfd);
 #endif
         return NULL;
     }
+#ifdef DEBUG
+    printf("accpet successful, client fd = %d\n", connfd);
+#endif
     return new Socket(connfd);
 }

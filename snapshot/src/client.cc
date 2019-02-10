@@ -10,6 +10,8 @@
 #include "lib/socket.h"
 #include "lib/time.h"
 #include "lib/network.pb.h"
+#include "lib/utils.h"
+#include "lib/runnable.h"
 
 #include <iostream>
 #include <sstream>
@@ -17,7 +19,6 @@
 #include <thread>
 #include <time.h>       /* time_t, struct tm, time, localtime */
 #include <sys/time.h>
-#include "lib/runnable.h"
 #include <functional>
 #include <queue>
 #include <map>
@@ -65,7 +66,7 @@ class Task : public Runnable {
 
 vector<string> splitBySpace(string &s) {
     vector<string> res;
-    int i = 0;
+    size_t i = 0;
     while (i < s.length()) {
         string tmp = "";
         while (i < s.length() && s[i] != ' ') {
@@ -127,7 +128,7 @@ void formatPrint() {
     snapshotRecord[client_id - 1] = request;
     printf("A snapshot has been terminated. The bank status is as following:\n");
     int cnt = 0;
-    for (int i = 0; i < snapshotRecord.size(); i++) {
+    for (size_t i = 0; i < snapshotRecord.size(); i++) {
         printf("(%d) The current balance for Client%d is %d.\n", cnt++, i + 1, snapshotRecord[i].money());
         if (snapshotRecord[i].channel1_money() != 0) {
             printf("(%d) (money on the fly) %d dollars is being sent from Client%d to Client%d.\n", cnt++,  snapshotRecord[i].channel1_money(), snapshotRecord[i].channel1_from(), snapshotRecord[i].channel1_to());
@@ -179,7 +180,6 @@ void receivePro(Socket& client) {
 
 
 void readMsgFromQueue(Socket& client) {
-	std::hash<std::string> str_hash;
     while (true) {
         for (auto it = clientMsg.begin(); it != clientMsg.end(); it++) {
             if (!(it->second).empty()) {
@@ -190,19 +190,13 @@ void readMsgFromQueue(Socket& client) {
                     printf("Marker\n");
 #endif
                     NetworkRequest request = setNetworkRequest();
-                    
                     request.set_client_to(cur.client_from());
-#if 0//debug
-                    printf("type is %d, from is %d, to is %d.\n", request.type(), request.client_from(), request.client_to());
-#endif
-                    // serialize to string
-                    string data;
-                    request.SerializeToString(&data);
-                    
-                    client.sendMessage(data);
-#if debug
-                    printf("type is %d, from is %d, to is %d, byte is %d.\n", request.type(), request.client_from(), request.client_to(), (data).length());
-#endif
+
+                    // serialize to string & send the data
+                    client.sendMessage(messageToString(request));
+
+                    cout << "client send mesage, json format = " << messageToJsonString(request) << endl;
+
                     (it->second).pop();
                 } else if (cur.type() == NetworkRequest::SNAPSHOT) {
 #if 1//debug
@@ -255,13 +249,8 @@ int main(int argc, const char * argv[]) {
     request.set_client_to(99);
     request.set_type(NetworkRequest::IDENTITY);
     
-    // serialize to string
-    string data;
-    request.SerializeToString(&data);
-    
-    //write(client.socketfd, (*coding).c_str(), (*coding).length());
-    client.sendMessage(data);
-    
+    client.sendMessage(messageToString(request));
+
     //Read Msg and msg queue
     thread t1(receivePro, ref(client));
     thread t2(readMsgFromQueue, ref(client));
@@ -279,8 +268,9 @@ int main(int argc, const char * argv[]) {
             vector<string> vec = splitBySpace(command);
             if (vec.empty()) continue;
             //Type
-            if (vec[0] == "transfer") request.set_type(NetworkRequest::TRANSFER);
-            else if (vec[0] == "snapshot") {
+            if (vec[0] == "transfer") {
+                request.set_type(NetworkRequest::TRANSFER);
+            } else if (vec[0] == "snapshot") {
                 request.set_type(NetworkRequest::MARKER);
                 waitingSnapshot = true;
             } else {
@@ -309,12 +299,7 @@ int main(int argc, const char * argv[]) {
                 printf("A snapshot has been initiated by Client%d.\n", client_id);
             }
             
-            // serialize to string
-            string data;
-            request.SerializeToString(&data);
-            
-            client.sendMessage(data);
-            //write(client.socketfd, (*coding).c_str(), (*coding).length());
+            client.sendMessage(messageToString(request));
         }
     }
     

@@ -17,8 +17,8 @@
 #include <stdio.h>
 #include <functional>
 
-
 #include "lib/network.pb.h"
+#include "lib/utils.h"
 
 #define debug 1
 
@@ -34,14 +34,10 @@ NetworkRequest parseString(string& s) {
 void processFun(ServerSocket& server, Socket* client) {
     //Read Identity
     string str = client->recvMessage();
-    printf("server read %d bytes\n", str.length());
 
     NetworkRequest tmp = parseString(str);
     if (tmp.type() == NetworkRequest::IDENTITY) vec[tmp.client_from() - 1] = client->socketfd;
-    printf("Type %d sent by %d to %d\n", tmp.type(), tmp.client_from(), tmp.client_to());
-	std::hash<std::string> str_hash;
-
-    cout << "server recv " << str_hash(str) << endl;
+    cout << "server recv message = " << messageToJsonString(tmp) << endl;
     
     while (true) {
         str = client->recvMessage();
@@ -51,10 +47,8 @@ void processFun(ServerSocket& server, Socket* client) {
         }
 
         tmp = parseString(str);
-		cout << "server recv " << str_hash(str) << endl;
+        cout << "server recv message = " << messageToJsonString(tmp) << endl;
 
-        printf("Type %d sent by %d to %d, byte is %d\n", tmp.type(), tmp.client_from(), tmp.client_to(), str.length());
-        
         if (tmp.type() == NetworkRequest::TRANSFER || tmp.type() == NetworkRequest::SNAPSHOT) {
             Socket socket(vec[tmp.client_to() - 1]);
             socket.sendMessage(str);
