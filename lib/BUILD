@@ -3,6 +3,7 @@ cc_library(
     srcs = glob(["*.cc"]),
     hdrs = glob(["*.h"]),
     visibility = ["//visibility:public"],
+    deps = ["//lib/third_party/protobuf_3_6_1:protobuf"],
 )
 
 cc_proto_library(
